@@ -87,6 +87,8 @@ class Index:
         print('Reading indices...')
         self.titles_index = InvertedIndex.read_index('title_index', 'title_index')
         self.body_index = InvertedIndex.read_index('body_index', 'body_index')
+        self.anchor_index = InvertedIndex.read_index('anchor_index', 'anchor_index')
+
     def load_file(self):
         pkl_file = "part15_preprocessed.pkl"
 
@@ -130,11 +132,12 @@ class Index:
 
 
     def tokenize(self, txt):
-        # TODO: write docs
-        return [token.group() for token in RE_WORD.finditer(txt.lower())]
+        # TODO: write documentation
+        return [token.group() for token in RE_WORD.finditer(txt.lower()) if token.group() not in all_stopwords]
 
 
 if __name__ == "__main__":
+    # TODO: add DL attribute to index to calc tf-idf
     my_index = Index()
     my_index.build_indices()
     print("before read locs:", len(my_index.titles_index.posting_locs))

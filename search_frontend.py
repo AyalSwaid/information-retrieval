@@ -34,7 +34,7 @@ def search():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-
+    res = engine.search(query)
     # END SOLUTION
     return jsonify(res)
 
@@ -59,7 +59,7 @@ def search_body():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-
+    res = engine.search_by_body(query)
     # END SOLUTION
     return jsonify(res)
 
