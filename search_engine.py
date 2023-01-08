@@ -1,6 +1,7 @@
 from build_index import Index
 from collections import Counter, OrderedDict, defaultdict
 from time import time
+import pandas as pd
 
 # TODO: try to search using pyspark, this TODO should be the last one to be done
 
@@ -8,6 +9,7 @@ class Engine:
     def __init__(self):
         self.index = Index()
         self.index.read_indices()
+        self.page_rank = pd.read_csv('pageRank.csv', index_col=0, names=['rank']).to_dict()['rank']# {doc_id:rank}
 
     def search(self, query):
         query_tokens = self.index.tokenize(query)
@@ -150,6 +152,8 @@ class Engine:
                                               key=lambda x: x[1], reverse=True)[:N]
         return merged_scores_dict
 
+    def get_page_ranks(self, wiki_ids):
+        return [self.page_rank.get(x,0) for x in wiki_ids]
 
 if __name__ == "__main__":
     engine = Engine()

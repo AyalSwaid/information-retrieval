@@ -120,7 +120,7 @@ def search_anchor():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-    
+    res = engine.search_by_anchor(query)
     # END SOLUTION
     return jsonify(res)
 
