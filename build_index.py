@@ -31,7 +31,7 @@ class Index:
         self.all_pls = {'title_index':defaultdict(list),
                         'body_index': defaultdict(list)}
 
-        self.pages = self.load_file()
+        # self.pages = self.load_file()
 
         # init indeices
         self.titles_index = InvertedIndex()
