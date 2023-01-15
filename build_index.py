@@ -1,12 +1,14 @@
 import os
 from pathlib import Path
 import pickle
-from nltk.corpus import stopwords
+# from nltk.corpus import stopwords
 import re
 from collections import Counter, OrderedDict, defaultdict
 import hashlib
-
-from inverted_index_colab import InvertedIndex
+import nltk
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+from inverted_index_gcp import InvertedIndex
 
 def _hash(s):
     return hashlib.blake2b(bytes(s, encoding='utf8'), digest_size=5).hexdigest()
@@ -25,71 +27,44 @@ def token2bucket_id(token):
   return int(_hash(token),16) % NUM_BUCKETS
 
 class Index:
+    """
+    This is the main index of the project, so it is the only class that communicate directly with the inverted indices.
+    this class is only used by Engine class to help searching queries.
+    contains three InvertedIndex objects: body_index, title_index, anchor_index.
+    self.__init__ inits empty indices objects, and self.read_indices will read the indices contents from disk.
+    """
     def __init__(self):
         self.all_pls_titles = defaultdict(list)
         # self.all_pls_body = defaultdict(list)
         self.all_pls = {'title_index':defaultdict(list),
                         'body_index': defaultdict(list)}
 
-        # self.pages = self.load_file()
-
         # init indeices
-        self.titles_index = InvertedIndex()
-        self.body_index = InvertedIndex()
-        self.anchor_index = InvertedIndex()
+        self.titles_index = InvertedIndex(dir_name='title_index/')
+        self.body_index = InvertedIndex(dir_name = 'body_index/')
+        self.anchor_index = InvertedIndex(dir_name = 'anchor_index/')
 
-    def build_indices(self):
-        """
-        read preprocessed pkl file and extract word counts and tokens from the readed
-        data and then write to indices
-        :return:
-        """
-        print("building indices...")
-        # add docs to indices
-        cc = 0
-        for wiki_id, title, body, links in self.pages:
-            # get title pls
-            pls, tkns = self.word_count(title, wiki_id)
-            self.union_pls(pls, 'title_index', self.all_pls)
-            self.titles_index.add_doc(wiki_id, tkns)
-
-            # get body pls
-            # pls, tkns = self.word_count(body, wiki_id)
-            # self.union_pls(pls, 'body_index', self.all_pls)
-            # self.body_index.add_doc(wiki_id, tkns)
-        # print(self.titles_index.df)
-        for index_name, postings in self.all_pls.items():
-            # print(postings)
-            for w, pls in postings.items():
-                # TODO: calc all bucket ids and union then use write_a_posting_list to write into each bucket. this may be implementd in assignments
-                buck_id = token2bucket_id(w)
-                # print(pls)
-                # break
-                cc += 1
-                if cc >= 200:
-                    break
-                if index_name == 'title_index':
-                    self.titles_index.write_a_posting_list(index_name, (buck_id, self.all_pls[index_name].items()))
-                elif index_name == 'body_index':
-                    self.body_index.write_a_posting_list(index_name, (buck_id, self.all_pls[index_name].items()))
-
-
-            self.titles_index.write_index('title_index', 'title_index')
-            # self.body_index.write_index('body_index', 'body_index')
 
     def read_indices(self):
         """
-        read inverted indices from relevant directory and store them in self.titles_index.
-        this fnction can be used only
-        after indidces are already built.
+        read inverted indices from relevant directory and store them in self.titles_index, self.body_index, self.anchor_index
+        this fnction can be used only after indidces are already built.
         :return: None
         """
         print('Reading indices...')
         self.titles_index = InvertedIndex.read_index('title_index', 'title_index')
         self.body_index = InvertedIndex.read_index('body_index', 'body_index')
         self.anchor_index = InvertedIndex.read_index('anchor_index', 'anchor_index')
-
+        
+        self.titles_index.dir_name = 'title_index/'
+        self.body_index.dir_name = 'body_index/'
+        self.anchor_index.dir_name = 'anchor_index/'
+        
     def load_file(self):
+        """
+        read local pkl file to test the model on my pc
+        :return:
+        """
         pkl_file = "part15_preprocessed.pkl"
 
         try:
@@ -132,12 +107,15 @@ class Index:
 
 
     def tokenize(self, txt):
-        # TODO: write documentation
+        """
+        tokenize txt and delete stopwords
+        :param txt: 
+        :return: 
+        """""
         return [token.group() for token in RE_WORD.finditer(txt.lower()) if token.group() not in all_stopwords]
 
-
+# some tests
 if __name__ == "__main__":
-    # TODO: add DL attribute to index to calc tf-idf
     my_index = Index()
     my_index.build_indices()
     print("before read locs:", len(my_index.titles_index.posting_locs))

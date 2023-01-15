@@ -8,7 +8,7 @@ class MyFlaskApp(Flask):
 app = MyFlaskApp(__name__)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
-# our search engine
+# our search engine, each query we recieve in flask is sent to Engine
 engine = Engine()
 
 @app.route("/search")
@@ -145,7 +145,7 @@ def get_pagerank():
     if len(wiki_ids) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-
+    res = engine.get_page_ranks(wiki_ids)
     # END SOLUTION
     return jsonify(res)
 
@@ -172,7 +172,7 @@ def get_pageview():
     if len(wiki_ids) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-
+    res = engine.get_page_views(wiki_ids)
     # END SOLUTION
     return jsonify(res)
 
